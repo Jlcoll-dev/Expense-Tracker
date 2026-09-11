@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f0f0f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Finanzas" />
+  <title>Finanzas</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="app">
+
+    <!-- PANTALLA: INICIO -->
+    <div id="screen-home" class="screen active">
+      <div class="safe-top"></div>
+      <div class="s-header">
+        <div>
+          <div class="s-month" id="home-month">Septiembre</div>
+          <div class="s-year">2026</div>
+        </div>
+        <button class="icon-btn" id="month-prev" aria-label="Mes anterior">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="icon-btn" id="month-next" aria-label="Mes siguiente">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+
+      <div class="balance-card">
+        <div class="bc-label">Gastos del mes</div>
+        <div class="bc-total" id="home-total-gasto">$ 0</div>
+        <div class="bc-row">
+          <div class="bc-mini">
+            <div class="bc-mini-lbl">Ingresos</div>
+            <div class="bc-mini-val green" id="home-total-ingreso">$ 0</div>
+          </div>
+          <div class="bc-mini">
+            <div class="bc-mini-lbl">Balance</div>
+            <div class="bc-mini-val" id="home-balance">$ 0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">Últimos movimientos</div>
+      <div class="tx-list" id="home-tx-list">
+        <div class="empty-state">Sin movimientos este mes.<br>Tocá + para agregar uno.</div>
+      </div>
+      <div class="safe-bottom"></div>
+    </div>
+
+    <!-- PANTALLA: AGREGAR -->
+    <div id="screen-add" class="screen">
+      <div class="safe-top"></div>
+      <div class="s-header">
+        <div class="s-month">Nuevo movimiento</div>
+      </div>
+
+      <div class="form-body">
+        <div class="type-grid">
+          <button class="type-card selected" data-type="gasto" id="type-gasto">
+            <div class="type-ic red-ic">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            </div>
+            <span>Gasto</span>
+          </button>
+          <button class="type-card" data-type="ingreso" id="type-ingreso">
+            <div class="type-ic green-ic">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+            <span>Ingreso</span>
+          </button>
+        </div>
+
+        <div class="field-group">
+          <label class="field-lbl">Concepto</label>
+          <input type="text" id="f-concepto" class="field-input" placeholder="Ej: supermercado, sueldo…" autocomplete="off" />
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-lbl">Monto</label>
+            <input type="number" id="f-monto" class="field-input" placeholder="0" min="0" inputmode="decimal" />
+          </div>
+          <div class="field-group">
+            <label class="field-lbl">Moneda</label>
+            <select id="f-moneda" class="field-input">
+              <option value="ARS">ARS $</option>
+              <option value="USD">USD u$s</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-lbl">Categoría</label>
+            <select id="f-categoria" class="field-input">
+              <option>Hogar</option>
+              <option>Comida</option>
+              <option>Transporte</option>
+              <option>Entretenimiento</option>
+              <option>Salud</option>
+              <option>Moto</option>
+              <option>Salidas</option>
+              <option>Otros</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-lbl">Método de pago</label>
+            <select id="f-metodo" class="field-input">
+              <option>MercadoPago</option>
+              <option>amex</option>
+              <option>Visa Galicia</option>
+              <option>Master Galicia</option>
+              <option>Efectivo</option>
+              <option>Transferencia</option>
+              <option>Débito</option>
+              <option>Otros</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-lbl">Fecha</label>
+          <input type="date" id="f-fecha" class="field-input" />
+        </div>
+
+        <div class="field-group">
+          <label class="field-lbl">Mes</label>
+          <select id="f-mes" class="field-input">
+            <option>Enero</option><option>Febrero</option><option>Marzo</option>
+            <option>Abril</option><option>Mayo</option><option>Junio</option>
+            <option>Julio</option><option>Agosto</option><option selected>Septiembre</option>
+            <option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+          </select>
+        </div>
+
+        <div class="form-error" id="f-error"></div>
+        <button class="cta-btn" id="btn-registrar">Registrar</button>
+      </div>
+      <div class="safe-bottom"></div>
+    </div>
+
+    <!-- PANTALLA: HISTORIAL -->
+    <div id="screen-history" class="screen">
+      <div class="safe-top"></div>
+      <div class="s-header">
+        <div class="s-month">Historial</div>
+      </div>
+      <div class="filters">
+        <select class="filter-select" id="h-mes">
+          <option value="">Todos los meses</option>
+          <option>Enero</option><option>Febrero</option><option>Marzo</option>
+          <option>Abril</option><option>Mayo</option><option>Junio</option>
+          <option>Julio</option><option>Agosto</option><option>Septiembre</option>
+          <option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+        </select>
+        <select class="filter-select" id="h-tipo">
+          <option value="">Todo</option>
+          <option value="gasto">Gastos</option>
+          <option value="ingreso">Ingresos</option>
+        </select>
+        <select class="filter-select" id="h-cat">
+          <option value="">Categoría</option>
+          <option>Hogar</option><option>Comida</option><option>Transporte</option>
+          <option>Entretenimiento</option><option>Salud</option><option>Moto</option>
+          <option>Salidas</option><option>Otros</option>
+        </select>
+      </div>
+      <div class="hist-summary" id="h-summary"></div>
+      <div class="tx-list" id="hist-tx-list"></div>
+      <div class="safe-bottom"></div>
+    </div>
+
+    <!-- PANTALLA: REPORTES -->
+    <div id="screen-reports" class="screen">
+      <div class="safe-top"></div>
+      <div class="s-header">
+        <div class="s-month">Reportes</div>
+      </div>
+
+      <div class="month-tabs" id="rep-month-tabs"></div>
+
+      <div class="rep-grid">
+        <div class="rep-metric">
+          <div class="rep-mlbl">Total gastado</div>
+          <div class="rep-mval red" id="rep-total-gasto">$ 0</div>
+        </div>
+        <div class="rep-metric">
+          <div class="rep-mlbl">Total ingresado</div>
+          <div class="rep-mval green" id="rep-total-ingreso">$ 0</div>
+        </div>
+      </div>
+
+      <div class="section-header">Por categoría</div>
+      <div class="bar-card" id="rep-cats"></div>
+
+      <div class="section-header">Por método de pago</div>
+      <div class="bar-card" id="rep-metodos"></div>
+
+      <div class="safe-bottom"></div>
+    </div>
+
+    <!-- TAB BAR -->
+    <nav class="tab-bar" id="tab-bar">
+      <button class="tab active" data-screen="home" aria-label="Inicio">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Inicio</span>
+      </button>
+      <button class="tab" data-screen="add" aria-label="Agregar">
+        <div class="tab-add-btn">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </div>
+        <span>Agregar</span>
+      </button>
+      <button class="tab" data-screen="history" aria-label="Historial">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span>Historial</span>
+      </button>
+      <button class="tab" data-screen="reports" aria-label="Reportes">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Reportes</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
