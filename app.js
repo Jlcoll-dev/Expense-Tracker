@@ -331,8 +331,22 @@ function showScreen(name) {
   if (name === 'history')   renderHistory();
   if (name === 'reports')   renderReports();
   if (name === 'add')       initForm();
-  if (name === 'archive'   && window.archiveModule)   window.archiveModule.render();
-  if (name === 'recurring' && window.recurringModule) window.recurringModule.render();
+  if (name === 'archive') {
+    const tryArchive = () => {
+      if (window.archiveModule) { window.archiveModule.render(); return; }
+      document.getElementById('screen-archive').innerHTML =
+        '<div class="safe-top"></div><div style="padding:2rem 1rem;color:#ff453a;font-size:14px;font-family:sans-serif">Error al cargar módulo Archivar.<br>Recargá la app.</div>';
+    };
+    window.archiveModule ? tryArchive() : setTimeout(tryArchive, 600);
+  }
+  if (name === 'recurring') {
+    const tryRecurring = () => {
+      if (window.recurringModule) { window.recurringModule.render(); return; }
+      document.getElementById('screen-recurring').innerHTML =
+        '<div class="safe-top"></div><div style="padding:2rem 1rem;color:#ff453a;font-size:14px;font-family:sans-serif">Error al cargar módulo Fijos.<br>Recargá la app.</div>';
+    };
+    window.recurringModule ? tryRecurring() : setTimeout(tryRecurring, 600);
+  }
 }
 
 /* ══════════════════════════════════════
