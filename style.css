@@ -607,3 +607,158 @@ select.field-input { background-image: url("data:image/svg+xml,%3Csvg xmlns='htt
   color: var(--text2);
   text-align: center;
 }
+
+/* ── Recurring / gastos fijos ── */
+.rec-insert-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 16px;
+  background: var(--card);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  border: .5px solid var(--border);
+  flex-wrap: wrap;
+}
+.rec-insert-text {
+  font-size: 13px;
+  color: var(--text2);
+  flex: 1;
+  min-width: 120px;
+}
+.rec-mes-select {
+  background: var(--card2);
+  border: .5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 26px 6px 10px;
+  font-size: 13px;
+  color: var(--text);
+  font-family: inherit;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23636366' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+.rec-btn-insert {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rec-btn-insert:active { opacity: .85; }
+
+.rec-list { padding: 0 16px; }
+
+.rec-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: .5px solid var(--border);
+  transition: opacity .2s;
+}
+.rec-row:last-child { border-bottom: none; }
+.rec-row-inactive { opacity: .45; }
+
+/* Toggle switch */
+.rec-toggle {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.rec-toggle input { opacity: 0; width: 0; height: 0; }
+.rec-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--card2);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.rec-slider::before {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  left: 3px; top: 3px;
+  background: var(--text3);
+  border-radius: 50%;
+  transition: transform .2s, background .2s;
+}
+.rec-toggle input:checked + .rec-slider { background: var(--green); }
+.rec-toggle input:checked + .rec-slider::before {
+  transform: translateX(16px);
+  background: #fff;
+}
+
+.rec-edit-btn, .rec-del-btn {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.rec-edit-btn:active { color: var(--accent); }
+.rec-del-btn:active  { color: var(--red); }
+
+.rec-btn-add {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--card);
+  border: .5px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 13px;
+  font-size: 14px;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: inherit;
+  margin-top: 8px;
+}
+.rec-btn-add:active { background: var(--card2); }
+
+/* Form nuevo/editar */
+.rec-form-wrap {
+  margin: 8px 16px 0;
+  background: var(--card);
+  border: .5px solid var(--border-accent);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.rec-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: .5px solid var(--border);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+.rec-form-close {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.rec-form-body { padding: 14px 16px; }
+.rec-form-err {
+  font-size: 13px;
+  color: var(--red);
+  min-height: 16px;
+  margin-bottom: 4px;
+}

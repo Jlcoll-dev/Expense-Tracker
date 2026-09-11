@@ -215,6 +215,11 @@
       <div class="safe-bottom"></div>
     </div>
 
+    <!-- PANTALLA: GASTOS FIJOS -->
+    <div id="screen-recurring" class="screen">
+      <div class="safe-top"></div>
+    </div>
+
     <!-- PANTALLA: ARCHIVAR -->
     <div id="screen-archive" class="screen">
       <div class="safe-top"></div>
@@ -240,6 +245,10 @@
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         <span>Reportes</span>
       </button>
+      <button class="tab" data-screen="recurring" aria-label="Fijos">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Fijos</span>
+      </button>
       <button class="tab" data-screen="archive" aria-label="Archivar">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
         <span>Archivar</span>
@@ -251,5 +260,6 @@
   <script src="app.js"></script>
   <script src="drive.js"></script>
   <script src="archive.js"></script>
+  <script src="recurring.js"></script>
 </body>
 </html>

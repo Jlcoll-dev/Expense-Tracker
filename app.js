@@ -176,6 +176,12 @@ function renderHome() {
   const mes = MESES[homeMesIdx];
   document.getElementById('home-month').textContent = mes;
 
+  // Auto-insert gastos fijos si hay módulo activo
+  if (window.recurringModule) {
+    const n = window.recurringModule.insertForMes(mes);
+    if (n > 0 && window.driveSync?.isConnected()) window.driveSync.push();
+  }
+
   const mesData = txs.filter(t => t.mes === mes && t.moneda === 'ARS');
   const totalGasto   = mesData.filter(t => t.tipo === 'gasto').reduce((a, t) => a + t.monto, 0);
   const totalIngreso = mesData.filter(t => t.tipo === 'ingreso').reduce((a, t) => a + t.monto, 0);
@@ -321,11 +327,12 @@ function showScreen(name) {
   document.querySelector(`.tab[data-screen="${name}"]`)?.classList.add('active');
   activeScreen = name;
 
-  if (name === 'home')    renderHome();
-  if (name === 'history') renderHistory();
-  if (name === 'reports') renderReports();
-  if (name === 'add')     initForm();
-  if (name === 'archive' && window.archiveModule) window.archiveModule.render();
+  if (name === 'home')      renderHome();
+  if (name === 'history')   renderHistory();
+  if (name === 'reports')   renderReports();
+  if (name === 'add')       initForm();
+  if (name === 'archive'   && window.archiveModule)   window.archiveModule.render();
+  if (name === 'recurring' && window.recurringModule) window.recurringModule.render();
 }
 
 /* ══════════════════════════════════════
