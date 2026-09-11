@@ -325,6 +325,7 @@ function showScreen(name) {
   if (name === 'history') renderHistory();
   if (name === 'reports') renderReports();
   if (name === 'add')     initForm();
+  if (name === 'archive' && window.archiveModule) window.archiveModule.render();
 }
 
 /* ══════════════════════════════════════
@@ -361,6 +362,9 @@ function addTransaction() {
   txs.push({ id: nextId++, mes, fecha, concepto, categoria, metodo, monto, moneda, tipo: selectedType });
   saveData();
 
+  // Sync to Drive if connected
+  if (window.driveSync?.isConnected()) window.driveSync.push();
+
   // Reset form
   document.getElementById('f-concepto').value = '';
   document.getElementById('f-monto').value = '';
@@ -378,6 +382,7 @@ function deleteTransaction(id) {
   txs = txs.filter(t => t.id !== id);
   saveData();
   renderHistory();
+  if (window.driveSync?.isConnected()) window.driveSync.push();
 }
 
 /* ══════════════════════════════════════
@@ -437,6 +442,22 @@ function registerSW() {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 }
+
+/* ══════════════════════════════════════
+   BRIDGE — expone state a drive.js
+   ══════════════════════════════════════ */
+window._appGetTxs    = () => txs;
+window._appGetNextId = () => nextId;
+window._appSetTxs    = (newTxs, newNextId) => {
+  txs    = newTxs;
+  nextId = newNextId;
+  saveData();
+};
+window._appRefresh   = () => {
+  if (activeScreen === 'home')    renderHome();
+  if (activeScreen === 'history') renderHistory();
+  if (activeScreen === 'reports') renderReports();
+};
 
 /* ══════════════════════════════════════
    INIT

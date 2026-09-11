@@ -1,48 +1,90 @@
 # Finanzas — App personal de gastos e ingresos
 
-PWA (Progressive Web App) dark mode para iOS y Android.  
-Se instala desde el navegador, funciona offline, datos en localStorage.
+PWA dark mode para iOS y Android. Datos en localStorage + backup automático en Google Drive.
 
-## Cómo publicar en GitHub Pages
+---
 
-### 1. Crear el repo en GitHub
-1. Entrá a [github.com](https://github.com) → **New repository**
-2. Nombre: `finanzas-app` (o el que quieras)
-3. Visibilidad: **Public** (necesario para GitHub Pages gratis)
-4. No agregues README ni .gitignore — el repo tiene que estar vacío
+## 1. Configurar Google OAuth (necesario para Drive)
 
-### 2. Subir el código
-Desde la terminal, en la carpeta del proyecto:
+Necesitás crear un Client ID gratis en Google Cloud. Son 5 minutos, solo se hace una vez.
 
+### Paso a paso:
+
+1. Entrá a [console.cloud.google.com](https://console.cloud.google.com)
+2. **Crear proyecto** → nombre: `Finanzas App`
+3. Menú izquierdo → **APIs y servicios** → **Biblioteca**
+   - Buscá `Google Drive API` → Habilitar
+4. **APIs y servicios** → **Credenciales** → **Crear credenciales** → **ID de cliente OAuth**
+5. Tipo de aplicación: **Aplicación web**
+6. Nombre: `Finanzas PWA`
+7. **Orígenes de JavaScript autorizados** → Agregar:
+   ```
+   https://TU_USUARIO.github.io
+   http://localhost:3000
+   ```
+8. **URIs de redireccionamiento** → Agregar:
+   ```
+   https://TU_USUARIO.github.io/finanzas-app/
+   ```
+9. Copiar el **Client ID** (tiene el formato `xxx.apps.googleusercontent.com`)
+
+### Pegar el Client ID en la app:
+
+Abrí `drive.js` y reemplazá la línea:
+```js
+const GOOGLE_CLIENT_ID = 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com';
+```
+con tu Client ID real.
+
+---
+
+## 2. Publicar en GitHub Pages
+
+### Crear el repo:
+1. [github.com](https://github.com) → **New repository**
+2. Nombre: `finanzas-app` · Público · Sin README
+
+### Subir el código:
 ```bash
+cd finanzas-app
 git init
 git add .
-git commit -m "primera versión"
+git commit -m "v1 con Drive sync"
 git branch -M main
 git remote add origin https://github.com/TU_USUARIO/finanzas-app.git
 git push -u origin main
 ```
 
-### 3. Activar GitHub Pages
-1. En el repo → **Settings** → **Pages**
-2. Source: **Deploy from a branch**
-3. Branch: `main` / `/ (root)`
-4. Guardar
+### Activar GitHub Pages:
+Settings → Pages → Branch: `main` / `/ (root)` → Save
 
-En 1-2 minutos la app va a estar en:  
-`https://TU_USUARIO.github.io/finanzas-app/`
+URL final: `https://TU_USUARIO.github.io/finanzas-app/`
 
-### 4. Instalar en el celular
+---
+
+## 3. Instalar en el celular
 
 **iPhone (iOS Safari):**
 1. Abrí la URL en Safari
-2. Tocá el botón compartir (cuadrado con flecha)
-3. "Agregar a inicio"
+2. Botón compartir → "Agregar a inicio"
 
 **Android / Samsung (Chrome):**
 1. Abrí la URL en Chrome
-2. Menú (tres puntos) → "Agregar a pantalla de inicio"
-3. O el banner que aparece automáticamente
+2. Menú → "Agregar a pantalla de inicio"
+
+---
+
+## Cómo funciona la sincronización
+
+| Evento | Qué pasa |
+|---|---|
+| Primer toque en "Conectar" | Login Google → descarga Drive → merge → sube |
+| Agregar un movimiento | Guarda local → sube a Drive automáticamente |
+| Eliminar un movimiento | Guarda local → sube a Drive automáticamente |
+| Abrir la app (con token activo) | Baja Drive → merge con local |
+| Sin internet | Todo funciona offline, sube cuando vuelve la conexión |
+
+El archivo en Drive se llama `finanzas-data.json` y queda en "Mi unidad".
 
 ---
 
@@ -50,18 +92,13 @@ En 1-2 minutos la app va a estar en:
 
 ```
 finanzas-app/
-├── index.html      ← estructura HTML
-├── style.css       ← dark mode, diseño mobile
-├── app.js          ← toda la lógica y datos
-├── manifest.json   ← configuración PWA
+├── index.html      ← estructura y shell HTML
+├── style.css       ← dark mode, diseño mobile-first
+├── app.js          ← lógica, datos y render
+├── drive.js        ← sincronización con Google Drive
+├── manifest.json   ← config PWA (instalación)
 ├── sw.js           ← service worker (offline)
 └── icons/
     ├── icon-192.png
     └── icon-512.png
 ```
-
-## Categorías (rubros)
-Hogar · Comida · Transporte · Entretenimiento · Salud · Moto · Salidas · Otros
-
-## Métodos de pago (cajas)
-MercadoPago · Amex · Visa Galicia · Master Galicia · Efectivo · Transferencia · Débito · Otros
