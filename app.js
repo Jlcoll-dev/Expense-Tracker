@@ -502,6 +502,7 @@ function bindEvents() {
 
   // Register button
   document.getElementById('btn-registrar').addEventListener('click', addTransaction);
+  document.getElementById('home-add-btn').addEventListener('click', () => showScreen('add'));
 
   // History filters
   ['h-mes','h-tipo','h-cat'].forEach(id => {
