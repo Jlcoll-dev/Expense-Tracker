@@ -86,6 +86,10 @@ function renderArchiveScreen() {
         Exportar todo a Excel
       </button>
 
+      <button class="cta-btn" id="arc-btn-reset-all" style="margin-top:10px;background:var(--red)">
+        Borrar todos los registros
+      </button>
+
       <div class="arc-confirm" id="arc-confirm" style="display:none">
         <p id="arc-confirm-text"></p>
         <div style="display:flex;gap:10px;margin-top:12px">
@@ -109,6 +113,7 @@ function renderArchiveScreen() {
   });
   document.getElementById('arc-btn-archive').addEventListener('click', startArchive);
   document.getElementById('arc-btn-export-all').addEventListener('click', exportAll);
+  document.getElementById('arc-btn-reset-all').addEventListener('click', resetAllData);
   updatePreview();
 }
 
@@ -127,6 +132,24 @@ function saveArchived(records) {
 function getAllRecords() {
   const active = window._appGetTxs ? window._appGetTxs() : [];
   return [...active, ...loadArchived()];
+}
+
+function resetAllData() {
+  const total = getAllRecords().length;
+  if (!total) {
+    showToast('No hay registros para borrar', 'info');
+    return;
+  }
+  const confirmed = window.confirm(
+    `Se van a borrar ${total} registros activos y archivados. Esta acción no se puede deshacer. ¿Continuar?`
+  );
+  if (!confirmed) return;
+
+  if (window._appSetTxs) window._appSetTxs([], 1);
+  saveArchived([]);
+  if (window._appRefresh) window._appRefresh();
+  renderArchiveScreen();
+  showToast('Todos los registros fueron borrados', 'success');
 }
 
 function downloadWorkbook(records, fileName) {
