@@ -136,19 +136,20 @@ function getAllRecords() {
 
 function resetAllData() {
   const total = getAllRecords().length;
-  if (!total) {
-    showToast('No hay registros para borrar', 'info');
+  const hasFixedExpenses = localStorage.getItem('finanzas_fijos_v1') !== null;
+  if (!total && !hasFixedExpenses) {
+    showToast('La aplicación ya está vacía', 'info');
     return;
   }
   const confirmed = window.confirm(
-    `Se van a borrar ${total} registros activos y archivados. Esta acción no se puede deshacer. ¿Continuar?`
+    `Se van a borrar ${total} registros, movimientos archivados y gastos fijos configurados. Esta acción no se puede deshacer. ¿Continuar?`
   );
   if (!confirmed) return;
 
   if (window._appSetTxs) window._appSetTxs([], 1);
   saveArchived([]);
-  if (window._appRefresh) window._appRefresh();
-  renderArchiveScreen();
+  localStorage.setItem('finanzas_fijos_v1', '[]');
+  if (typeof showScreen === 'function') showScreen('home');
   showToast('Todos los registros fueron borrados', 'success');
 }
 
