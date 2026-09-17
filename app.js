@@ -160,13 +160,39 @@ function saveData() {
    FORMATTERS
    ══════════════════════════════════════ */
 function fmt(n, moneda = 'ARS') {
-  const abs = Math.abs(Math.round(n));
-  const str = abs.toLocaleString('es-AR');
+  const abs = Math.abs(Number(n) || 0);
+  const str = abs.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   return moneda === 'USD' ? `u$s ${str}` : `$ ${str}`;
+}
+function fmtBalance(n, moneda) {
+  return `${n < 0 ? '− ' : ''}${fmt(n, moneda)}`;
 }
 function capitalize(s) {
   if (!s) return s;
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function calculateBalances(records) {
+  const balances = { ARS: 0, USD: 0 };
+  records.forEach(t => {
+    if (t.tipo === 'cambio') {
+      balances[t.moneda] -= Number(t.monto) || 0;
+      balances[t.monedaDestino] += Number(t.montoDestino) || 0;
+      return;
+    }
+    const amount = Number(t.monto) || 0;
+    balances[t.moneda] += t.tipo === 'ingreso' ? amount : -amount;
+  });
+  return balances;
+}
+
+function monthlyCurrencySummary(records, moneda) {
+  return records
+    .filter(t => t.moneda === moneda && (t.tipo === 'gasto' || t.tipo === 'ingreso'))
+    .reduce((summary, t) => {
+      summary[t.tipo] += Number(t.monto) || 0;
+      return summary;
+    }, { gasto: 0, ingreso: 0 });
 }
 
 /* ══════════════════════════════════════
@@ -181,16 +207,20 @@ function renderHome() {
     window.recurringModule.insertForMes(mes);
   }
 
-  const mesData = txs.filter(t => t.mes === mes && t.moneda === 'ARS');
-  const totalGasto   = mesData.filter(t => t.tipo === 'gasto').reduce((a, t) => a + t.monto, 0);
-  const totalIngreso = mesData.filter(t => t.tipo === 'ingreso').reduce((a, t) => a + t.monto, 0);
-  const balance = totalIngreso - totalGasto;
+  const mesData = txs.filter(t => t.mes === mes);
+  const archived = window.archiveModule?.getArchived?.() || [];
+  const balances = calculateBalances([...txs, ...archived]);
+  const arsMonth = monthlyCurrencySummary(mesData, 'ARS');
+  const usdMonth = monthlyCurrencySummary(mesData, 'USD');
 
-  document.getElementById('home-total-gasto').textContent = fmt(totalGasto);
-  document.getElementById('home-total-ingreso').textContent = fmt(totalIngreso);
-  const balEl = document.getElementById('home-balance');
-  balEl.textContent = fmt(Math.abs(balance));
-  balEl.className = 'bc-mini-val ' + (balance >= 0 ? 'green' : 'red');
+  const arsBalanceEl = document.getElementById('home-ars-balance');
+  const usdBalanceEl = document.getElementById('home-usd-balance');
+  arsBalanceEl.textContent = fmtBalance(balances.ARS, 'ARS');
+  usdBalanceEl.textContent = fmtBalance(balances.USD, 'USD');
+  arsBalanceEl.className = 'bc-mini-val ' + (balances.ARS >= 0 ? 'green' : 'red');
+  usdBalanceEl.className = 'bc-mini-val ' + (balances.USD >= 0 ? 'green' : 'red');
+  document.getElementById('home-ars-detail').textContent = `Este mes: ${fmt(arsMonth.gasto, 'ARS')} gastos`;
+  document.getElementById('home-usd-detail').textContent = `Este mes: ${fmt(usdMonth.gasto, 'USD')} gastos`;
 
   const listEl = document.getElementById('home-tx-list');
   const recent = [...mesData].reverse().slice(0, 10);
@@ -215,9 +245,15 @@ function renderHistory() {
   if (fTipo) filtered = filtered.filter(t => t.tipo === fTipo);
   if (fCat)  filtered = filtered.filter(t => t.categoria === fCat);
 
-  const total = filtered.reduce((a, t) => a + (t.tipo === 'gasto' ? -t.monto : t.monto), 0);
+  const totals = ['ARS', 'USD'].map(moneda => {
+    const total = filtered.reduce((sum, t) => {
+      if (t.tipo === 'cambio' || t.moneda !== moneda) return sum;
+      return sum + (t.tipo === 'gasto' ? -t.monto : t.monto);
+    }, 0);
+    return total ? fmt(Math.abs(total), moneda) : null;
+  }).filter(Boolean);
   document.getElementById('h-summary').textContent =
-    `${filtered.length} movimiento${filtered.length !== 1 ? 's' : ''} · ${fmt(Math.abs(total))}`;
+    `${filtered.length} movimiento${filtered.length !== 1 ? 's' : ''}${totals.length ? ` · ${totals.join(' · ')}` : ''}`;
 
   const listEl = document.getElementById('hist-tx-list');
   if (!filtered.length) {
@@ -244,17 +280,19 @@ function renderReports() {
     });
   });
 
-  const mesData = txs.filter(t => t.mes === repMes && t.moneda === 'ARS');
-  const totalGasto   = mesData.filter(t => t.tipo === 'gasto').reduce((a, t) => a + t.monto, 0);
-  const totalIngreso = mesData.filter(t => t.tipo === 'ingreso').reduce((a, t) => a + t.monto, 0);
+  const mesData = txs.filter(t => t.mes === repMes);
+  const arsSummary = monthlyCurrencySummary(mesData, 'ARS');
+  const usdSummary = monthlyCurrencySummary(mesData, 'USD');
 
-  document.getElementById('rep-total-gasto').textContent   = fmt(totalGasto);
-  document.getElementById('rep-total-ingreso').textContent = fmt(totalIngreso);
+  document.getElementById('rep-ars-gasto').textContent = fmt(arsSummary.gasto, 'ARS');
+  document.getElementById('rep-usd-gasto').textContent = fmt(usdSummary.gasto, 'USD');
+  document.getElementById('rep-ars-ingreso').textContent = fmt(arsSummary.ingreso, 'ARS');
+  document.getElementById('rep-usd-ingreso').textContent = fmt(usdSummary.ingreso, 'USD');
 
   // Bars por categoría
   const CATS = ['Hogar','Comida','Transporte','Entretenimiento','Salud','Moto','Salidas','Otros'];
   const catTotals = CATS
-    .map(c => ({ label: c, val: mesData.filter(t => t.tipo === 'gasto' && t.categoria === c).reduce((a, t) => a + t.monto, 0) }))
+    .map(c => ({ label: c, val: mesData.filter(t => t.tipo === 'gasto' && t.moneda === 'ARS' && t.categoria === c).reduce((a, t) => a + t.monto, 0) }))
     .filter(x => x.val > 0)
     .sort((a, b) => b.val - a.val);
   const maxCat = catTotals[0]?.val || 1;
@@ -271,7 +309,7 @@ function renderReports() {
   // Bars por método
   const METODOS = ['MercadoPago','amex','Visa Galicia','Master Galicia','Efectivo','Transferencia','Débito','Otros'];
   const metTotals = METODOS
-    .map(m => ({ label: m, val: mesData.filter(t => t.tipo === 'gasto' && t.metodo === m).reduce((a, t) => a + t.monto, 0) }))
+    .map(m => ({ label: m, val: mesData.filter(t => t.tipo === 'gasto' && t.moneda === 'ARS' && t.metodo === m).reduce((a, t) => a + t.monto, 0) }))
     .filter(x => x.val > 0)
     .sort((a, b) => b.val - a.val);
   const maxMet = metTotals[0]?.val || 1;
@@ -290,6 +328,24 @@ function renderReports() {
    TX ITEM HTML
    ══════════════════════════════════════ */
 function txItem(t, showDelete) {
+  if (t.tipo === 'cambio') {
+    const deleteBtn = showDelete
+      ? `<button class="tx-delete" data-id="${t.id}" aria-label="Eliminar">✕</button>`
+      : '';
+    return `
+      <div class="tx-item" data-id="${t.id}">
+        <div class="tx-icon cat-ingreso">↔</div>
+        <div class="tx-info">
+          <div class="tx-name">${capitalize(t.concepto)}</div>
+          <div class="tx-meta">Cambio · ${t.fecha}</div>
+        </div>
+        <div class="tx-right">
+          <div class="tx-amount" style="color:var(--blue,#0a84ff)">− ${fmt(t.monto, t.moneda)}</div>
+          <span class="tx-method pill-ot">+ ${fmt(t.montoDestino, t.monedaDestino)}</span>
+        </div>
+        ${deleteBtn}
+      </div>`;
+  }
   const isIngreso = t.tipo === 'ingreso';
   const iconClass = isIngreso ? 'cat-ingreso' : (CAT_CLASS[t.categoria] || 'cat-otros');
   const icon      = isIngreso ? '↑' : (CAT_ICON[t.categoria] || '•');
@@ -362,10 +418,12 @@ function updateTypeButtons() {
   document.querySelectorAll('.type-card').forEach(btn => {
     btn.classList.toggle('selected', btn.dataset.type === selectedType);
   });
+  document.getElementById('normal-currency-fields').style.display = selectedType === 'cambio' ? 'none' : '';
+  document.getElementById('exchange-fields').style.display = selectedType === 'cambio' ? 'block' : 'none';
 }
 
 function addTransaction() {
-  const concepto  = document.getElementById('f-concepto').value.trim();
+  let concepto    = document.getElementById('f-concepto').value.trim();
   const monto     = parseFloat(document.getElementById('f-monto').value);
   const moneda    = document.getElementById('f-moneda').value;
   const categoria = document.getElementById('f-categoria').value;
@@ -375,11 +433,25 @@ function addTransaction() {
   const errEl     = document.getElementById('f-error');
 
   errEl.textContent = '';
-  if (!concepto)        { errEl.textContent = 'Ingresá un concepto.'; return; }
-  if (!monto || monto <= 0) { errEl.textContent = 'Ingresá un monto válido.'; return; }
   if (!fecha)           { errEl.textContent = 'Seleccioná una fecha.'; return; }
 
-  txs.push({ id: nextId++, mes, fecha, concepto, categoria, metodo, monto, moneda, tipo: selectedType });
+  if (selectedType === 'cambio') {
+    const monedaOrigen = document.getElementById('f-cambio-origen').value;
+    const monedaDestino = document.getElementById('f-cambio-destino').value;
+    const montoOrigen = parseFloat(document.getElementById('f-cambio-monto-origen').value);
+    const montoDestino = parseFloat(document.getElementById('f-cambio-monto-destino').value);
+    if (monedaOrigen === monedaDestino) { errEl.textContent = 'Elegí dos monedas distintas.'; return; }
+    if (!montoOrigen || montoOrigen <= 0 || !montoDestino || montoDestino <= 0) {
+      errEl.textContent = 'Ingresá los dos montos del cambio.';
+      return;
+    }
+    concepto = concepto || `Cambio ${monedaOrigen} a ${monedaDestino}`;
+    txs.push({ id: nextId++, mes, fecha, concepto, categoria: 'Otros', metodo: 'Efectivo', monto: montoOrigen, moneda: monedaOrigen, tipo: 'cambio', montoDestino, monedaDestino });
+  } else {
+    if (!concepto) { errEl.textContent = 'Ingresá un concepto.'; return; }
+    if (!monto || monto <= 0) { errEl.textContent = 'Ingresá un monto válido.'; return; }
+    txs.push({ id: nextId++, mes, fecha, concepto, categoria, metodo, monto, moneda, tipo: selectedType });
+  }
   saveData();
 
   // Reset form

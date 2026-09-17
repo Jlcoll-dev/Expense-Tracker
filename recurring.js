@@ -82,7 +82,7 @@ function insertFijosForMes(mes) {
       categoria: fijo.categoria,
       metodo: fijo.metodo,
       monto: fijo.monto,
-      moneda: 'ARS',
+      moneda: fijo.moneda || 'ARS',
       tipo: 'gasto',
       esFijo: true,
     };
@@ -148,9 +148,16 @@ function renderRecurringScreen() {
         </div>
         <div class="field-row">
           <div class="field-group">
-            <label class="field-lbl">Monto ARS</label>
+              <label class="field-lbl">Monto</label>
             <input type="number" id="rec-f-monto" class="field-input" placeholder="0" min="0" inputmode="decimal"/>
           </div>
+            <div class="field-group">
+              <label class="field-lbl">Moneda</label>
+              <select id="rec-f-moneda" class="field-input">
+                <option value="ARS">ARS $</option>
+                <option value="USD">USD u$s</option>
+              </select>
+            </div>
           <div class="field-group">
             <label class="field-lbl">Día del mes</label>
             <input type="number" id="rec-f-dia" class="field-input" value="1" min="1" max="28"/>
@@ -191,8 +198,9 @@ function renderFijoRow(f) {
     'Entretenimiento':'cat-entre','Salud':'cat-salud','Moto':'cat-moto',
     'Salidas':'cat-salidas','Otros':'cat-otros'
   };
+  const moneda = f.moneda || 'ARS';
   const montoStr = f.monto > 0
-    ? `$ ${Math.round(f.monto).toLocaleString('es-AR')}`
+    ? `${moneda === 'USD' ? 'u$s' : '$'} ${Number(f.monto).toLocaleString('es-AR', { maximumFractionDigits: 2 })}`
     : '<span style="color:var(--text3)">sin monto</span>';
 
   return `
@@ -200,7 +208,7 @@ function renderFijoRow(f) {
       <div class="tx-icon ${catClass[f.categoria] || 'cat-otros'}" style="width:36px;height:36px;font-size:14px;flex-shrink:0">${iconMap[f.categoria] || '•'}</div>
       <div class="tx-info">
         <div class="tx-name">${f.concepto}</div>
-        <div class="tx-meta">${f.categoria} · ${f.metodo} · día ${f.dia}</div>
+          <div class="tx-meta">${f.categoria} · ${f.metodo} · ${moneda} · día ${f.dia}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
         <div class="tx-amount" style="color:var(--red);margin-bottom:5px">${montoStr}</div>
@@ -284,6 +292,7 @@ function openForm(rid) {
     document.getElementById('rec-f-id').value      = f.id;
     document.getElementById('rec-f-concepto').value = f.concepto;
     document.getElementById('rec-f-monto').value    = f.monto;
+    document.getElementById('rec-f-moneda').value   = f.moneda || 'ARS';
     document.getElementById('rec-f-dia').value      = f.dia;
     document.getElementById('rec-f-cat').value      = f.categoria;
     document.getElementById('rec-f-met').value      = f.metodo;
@@ -292,6 +301,7 @@ function openForm(rid) {
     document.getElementById('rec-f-id').value      = '';
     document.getElementById('rec-f-concepto').value = '';
     document.getElementById('rec-f-monto').value    = '';
+    document.getElementById('rec-f-moneda').value   = 'ARS';
     document.getElementById('rec-f-dia').value      = '1';
     document.getElementById('rec-f-cat').value      = 'Hogar';
     document.getElementById('rec-f-met').value      = 'MercadoPago';
@@ -307,6 +317,7 @@ function closeForm() {
 function saveForm() {
   const concepto = document.getElementById('rec-f-concepto').value.trim();
   const monto    = parseFloat(document.getElementById('rec-f-monto').value) || 0;
+  const moneda   = document.getElementById('rec-f-moneda').value;
   const dia      = parseInt(document.getElementById('rec-f-dia').value) || 1;
   const cat      = document.getElementById('rec-f-cat').value;
   const met      = document.getElementById('rec-f-met').value;
@@ -320,10 +331,10 @@ function saveForm() {
   const fijos = loadFijos();
   if (rid) {
     const f = fijos.find(x => x.id === rid);
-    if (f) { f.concepto = concepto; f.monto = monto; f.dia = dia; f.categoria = cat; f.metodo = met; }
+    if (f) { f.concepto = concepto; f.monto = monto; f.moneda = moneda; f.dia = dia; f.categoria = cat; f.metodo = met; }
   } else {
     const maxId = Math.max(...fijos.map(f => parseInt(f.id.replace('r',''))), 0);
-    fijos.push({ id: `r${maxId + 1}`, concepto, categoria: cat, metodo: met, monto, dia, activo: true });
+    fijos.push({ id: `r${maxId + 1}`, concepto, categoria: cat, metodo: met, monto, moneda, dia, activo: true });
   }
   saveFijos(fijos);
   closeForm();

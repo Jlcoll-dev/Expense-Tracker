@@ -38,16 +38,17 @@
       </div>
 
       <div class="balance-card">
-        <div class="bc-label">Gastos del mes</div>
-        <div class="bc-total" id="home-total-gasto">$ 0</div>
+        <div class="bc-label">Cajas actuales</div>
         <div class="bc-row">
           <div class="bc-mini">
-            <div class="bc-mini-lbl">Ingresos</div>
-            <div class="bc-mini-val green" id="home-total-ingreso">$ 0</div>
+            <div class="bc-mini-lbl">Caja ARS</div>
+            <div class="bc-mini-val" id="home-ars-balance">$ 0</div>
+            <div class="bc-mini-lbl" id="home-ars-detail">Sin movimientos este mes</div>
           </div>
           <div class="bc-mini">
-            <div class="bc-mini-lbl">Balance</div>
-            <div class="bc-mini-val" id="home-balance">$ 0</div>
+            <div class="bc-mini-lbl">Caja USD</div>
+            <div class="bc-mini-val" id="home-usd-balance">u$s 0</div>
+            <div class="bc-mini-lbl" id="home-usd-detail">Sin movimientos este mes</div>
           </div>
         </div>
       </div>
@@ -80,6 +81,12 @@
             </div>
             <span>Ingreso</span>
           </button>
+          <button class="type-card" data-type="cambio">
+            <div class="type-ic" style="color:var(--blue,#0a84ff)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3l4 4-4 4"/><path d="M3 7h18"/><path d="M7 21l-4-4 4-4"/><path d="M21 17H3"/></svg>
+            </div>
+            <span>Cambio</span>
+          </button>
         </div>
 
         <div class="field-group">
@@ -87,7 +94,7 @@
           <input type="text" id="f-concepto" class="field-input" placeholder="Ej: supermercado, sueldo…" autocomplete="off" />
         </div>
 
-        <div class="field-row">
+        <div class="field-row" id="normal-currency-fields">
           <div class="field-group">
             <label class="field-lbl">Monto</label>
             <input type="number" id="f-monto" class="field-input" placeholder="0" min="0" inputmode="decimal" />
@@ -98,6 +105,35 @@
               <option value="ARS">ARS $</option>
               <option value="USD">USD u$s</option>
             </select>
+          </div>
+        </div>
+
+        <div id="exchange-fields" style="display:none">
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-lbl">Sale de</label>
+              <select id="f-cambio-origen" class="field-input">
+                <option value="USD">USD u$s</option>
+                <option value="ARS">ARS $</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-lbl">Monto que sale</label>
+              <input type="number" id="f-cambio-monto-origen" class="field-input" placeholder="0" min="0" inputmode="decimal" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-group">
+              <label class="field-lbl">Entra a</label>
+              <select id="f-cambio-destino" class="field-input">
+                <option value="ARS">ARS $</option>
+                <option value="USD">USD u$s</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-lbl">Monto que entra</label>
+              <input type="number" id="f-cambio-monto-destino" class="field-input" placeholder="0" min="0" inputmode="decimal" />
+            </div>
           </div>
         </div>
 
@@ -181,12 +217,20 @@
       <div class="month-tabs" id="rep-month-tabs"></div>
       <div class="rep-grid">
         <div class="rep-metric">
-          <div class="rep-mlbl">Total gastado</div>
-          <div class="rep-mval red" id="rep-total-gasto">$ 0</div>
+          <div class="rep-mlbl">Gastos ARS</div>
+          <div class="rep-mval red" id="rep-ars-gasto">$ 0</div>
         </div>
         <div class="rep-metric">
-          <div class="rep-mlbl">Total ingresado</div>
-          <div class="rep-mval green" id="rep-total-ingreso">$ 0</div>
+          <div class="rep-mlbl">Gastos USD</div>
+          <div class="rep-mval red" id="rep-usd-gasto">u$s 0</div>
+        </div>
+        <div class="rep-metric">
+          <div class="rep-mlbl">Ingresos ARS</div>
+          <div class="rep-mval green" id="rep-ars-ingreso">$ 0</div>
+        </div>
+        <div class="rep-metric">
+          <div class="rep-mlbl">Ingresos USD</div>
+          <div class="rep-mval green" id="rep-usd-ingreso">u$s 0</div>
         </div>
       </div>
       <div class="section-header">Por categoría</div>

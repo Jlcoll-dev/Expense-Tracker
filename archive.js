@@ -381,6 +381,16 @@ function buildMonthSheet(mes, txs) {
     ingresos.forEach(t => rows.push([t.fecha, t.concepto, t.categoria, t.metodo, t.monto]));
   }
 
+  const cambios = txs.filter(t => t.tipo === 'cambio');
+  if (cambios.length) {
+    rows.push([]);
+    rows.push(['--- CAMBIOS DE MONEDA ---']);
+    rows.push(['Fecha', 'Concepto', 'Sale', 'Monto sale', 'Entra', 'Monto entra']);
+    cambios.forEach(t => rows.push([
+      t.fecha, t.concepto, t.moneda, t.monto, t.monedaDestino, t.montoDestino
+    ]));
+  }
+
   const ws = XLSX.utils.aoa_to_sheet(rows);
 
   // Column widths
@@ -434,4 +444,4 @@ function showToast(msg, type = 'info') {
 }
 
 /* ── Public init ── */
-window.archiveModule = { render: renderArchiveScreen };
+window.archiveModule = { render: renderArchiveScreen, getArchived: loadArchived };
