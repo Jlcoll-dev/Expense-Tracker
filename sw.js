@@ -1,4 +1,4 @@
-const CACHE = 'finanzas-v4';
+const CACHE = 'finanzas-v7';
 const BASE  = '/Expense-Tracker';
 const ASSETS = [
   BASE + '/',
