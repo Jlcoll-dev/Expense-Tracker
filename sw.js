@@ -1,10 +1,12 @@
-const CACHE = 'finanzas-v6';
+const CACHE = 'finanzas-v4';
 const BASE  = '/Expense-Tracker';
 const ASSETS = [
   BASE + '/',
   BASE + '/index.html',
   BASE + '/style.css',
-  BASE + '/bundle.js',
+  BASE + '/app.js',
+  BASE + '/archive.js',
+  BASE + '/recurring.js',
   BASE + '/manifest.json',
   BASE + '/icon-192.png',
   BASE + '/icon-512.png'

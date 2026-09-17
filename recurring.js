@@ -27,7 +27,7 @@ const FIJOS_SEED = [
   { id: 'r9', concepto: 'Sancor Salud', categoria: 'Salud', metodo: 'amex',        monto: 122300, dia: 1,  activo: true  },
 ];
 
-const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+const RECURRING_MONTHS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
                'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 const CAT_OPTIONS = ['Hogar','Comida','Transporte','Entretenimiento','Salud','Moto','Salidas','Otros'];
@@ -56,7 +56,7 @@ function insertFijosForMes(mes) {
   if (!fijos.length || !window._appGetTxs) return 0;
 
   const txs   = window._appGetTxs();
-  const mesIdx = MESES.indexOf(mes);
+  const mesIdx = RECURRING_MONTHS.indexOf(mes);
   const year   = new Date().getFullYear();
   let inserted = 0;
 
@@ -116,7 +116,7 @@ function renderRecurringScreen() {
     <div class="rec-insert-bar">
       <div class="rec-insert-text">Insertar fijos activos en un mes</div>
       <select id="rec-mes-insert" class="rec-mes-select">
-        ${MESES.map(m => `<option${m === MESES[new Date().getMonth()] ? ' selected' : ''}>${m}</option>`).join('')}
+        ${RECURRING_MONTHS.map(m => `<option${m === RECURRING_MONTHS[new Date().getMonth()] ? ' selected' : ''}>${m}</option>`).join('')}
       </select>
       <button id="rec-btn-insert" class="rec-btn-insert">Insertar</button>
     </div>
@@ -266,7 +266,6 @@ function bindRecurringEvents() {
     if (n > 0) {
       showRecToast(`${n} gasto${n > 1 ? 's' : ''} fijo${n > 1 ? 's' : ''} insertado${n > 1 ? 's' : ''} en ${mes}`, 'success');
       if (window._appRefresh) window._appRefresh();
-      if (window.driveSync?.isConnected()) window.driveSync.push();
     } else {
       showRecToast(`Los fijos de ${mes} ya estaban registrados`, 'info');
     }

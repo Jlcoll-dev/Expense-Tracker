@@ -178,8 +178,7 @@ function renderHome() {
 
   // Auto-insert gastos fijos si hay módulo activo
   if (window.recurringModule) {
-    const n = window.recurringModule.insertForMes(mes);
-    if (n > 0 && window.driveSync?.isConnected()) window.driveSync.push();
+    window.recurringModule.insertForMes(mes);
   }
 
   const mesData = txs.filter(t => t.mes === mes && t.moneda === 'ARS');
@@ -383,9 +382,6 @@ function addTransaction() {
   txs.push({ id: nextId++, mes, fecha, concepto, categoria, metodo, monto, moneda, tipo: selectedType });
   saveData();
 
-  // Sync to Drive if connected
-  if (window.driveSync?.isConnected()) window.driveSync.push();
-
   // Reset form
   document.getElementById('f-concepto').value = '';
   document.getElementById('f-monto').value = '';
@@ -403,7 +399,6 @@ function deleteTransaction(id) {
   txs = txs.filter(t => t.id !== id);
   saveData();
   renderHistory();
-  if (window.driveSync?.isConnected()) window.driveSync.push();
 }
 
 /* ══════════════════════════════════════
@@ -465,7 +460,7 @@ function registerSW() {
 }
 
 /* ══════════════════════════════════════
-   BRIDGE — expone state a drive.js
+  BRIDGE — expone el estado a los módulos locales
    ══════════════════════════════════════ */
 window._appGetTxs    = () => txs;
 window._appGetNextId = () => nextId;
