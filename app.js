@@ -118,6 +118,8 @@ const METODO_COLOR = {
   'Master Galicia':'#ff6680','Efectivo':'#30d158','Transferencia':'#aaaaff',
   'Débito':'#ff9f0a','Otros':'#636366'
 };
+const CATEGORIES_KEY = 'finanzas_categorias_v1';
+const DEFAULT_CATEGORIES = ['Hogar','Comida','Transporte','Entretenimiento','Salud','Moto','Salidas','Otros'];
 
 /* ══════════════════════════════════════
    STATE
@@ -128,6 +130,48 @@ let activeScreen = 'home';
 let homeMesIdx = new Date().getMonth(); // 0-based
 let repMes = MESES[new Date().getMonth()];
 let selectedType = 'gasto';
+let editingId = null;
+
+function getCategories() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CATEGORIES_KEY) || 'null');
+    return Array.isArray(saved) && saved.length ? saved : [...DEFAULT_CATEGORIES];
+  } catch {
+    return [...DEFAULT_CATEGORIES];
+  }
+}
+
+function saveCategories(categories) {
+  localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories));
+}
+
+function refreshCategoryOptions(selectedValue) {
+  const categories = getCategories();
+  const formSelect = document.getElementById('f-categoria');
+  const filterSelect = document.getElementById('h-cat');
+  if (formSelect) {
+    formSelect.innerHTML = categories.map(category => `<option>${category}</option>`).join('');
+    if (selectedValue && categories.includes(selectedValue)) formSelect.value = selectedValue;
+  }
+  if (filterSelect) {
+    const current = filterSelect.value;
+    filterSelect.innerHTML = '<option value="">Categoría</option>' + categories.map(category => `<option>${category}</option>`).join('');
+    if (categories.includes(current)) filterSelect.value = current;
+  }
+}
+
+function addCategory() {
+  const name = window.prompt('Nombre de la nueva categoría:')?.trim();
+  if (!name) return;
+  const categories = getCategories();
+  if (categories.some(category => category.toLowerCase() === name.toLowerCase())) {
+    refreshCategoryOptions(name);
+    return;
+  }
+  categories.push(name);
+  saveCategories(categories);
+  refreshCategoryOptions(name);
+}
 
 /* ══════════════════════════════════════
    STORAGE
@@ -290,7 +334,7 @@ function renderReports() {
   document.getElementById('rep-usd-ingreso').textContent = fmt(usdSummary.ingreso, 'USD');
 
   // Bars por categoría
-  const CATS = ['Hogar','Comida','Transporte','Entretenimiento','Salud','Moto','Salidas','Otros'];
+  const CATS = getCategories();
   const catTotals = CATS
     .map(c => ({ label: c, val: mesData.filter(t => t.tipo === 'gasto' && t.moneda === 'ARS' && t.categoria === c).reduce((a, t) => a + t.monto, 0) }))
     .filter(x => x.val > 0)
@@ -301,7 +345,7 @@ function renderReports() {
     ? catTotals.map(({ label, val }) => `
         <div class="bar-row">
           <div class="bar-lbl">${label}</div>
-          <div class="bar-out"><div class="bar-in" style="width:${Math.round(val/maxCat*100)}%;background:${CAT_COLOR[label]}"></div></div>
+            <div class="bar-out"><div class="bar-in" style="width:${Math.round(val/maxCat*100)}%;background:${CAT_COLOR[label] || CAT_COLOR.Otros}"></div></div>
           <div class="bar-val">${fmt(val)}</div>
         </div>`).join('')
     : '<div style="color:var(--text3);font-size:13px;padding:4px 0">Sin gastos en este mes.</div>';
@@ -329,8 +373,8 @@ function renderReports() {
    ══════════════════════════════════════ */
 function txItem(t, showDelete) {
   if (t.tipo === 'cambio') {
-    const deleteBtn = showDelete
-      ? `<button class="tx-delete" data-id="${t.id}" aria-label="Eliminar">✕</button>`
+    const actionBtns = showDelete
+      ? `<button class="tx-edit" data-id="${t.id}" aria-label="Editar">✎</button><button class="tx-delete" data-id="${t.id}" aria-label="Eliminar">✕</button>`
       : '';
     return `
       <div class="tx-item" data-id="${t.id}">
@@ -343,7 +387,7 @@ function txItem(t, showDelete) {
           <div class="tx-amount" style="color:var(--blue,#0a84ff)">− ${fmt(t.monto, t.moneda)}</div>
           <span class="tx-method pill-ot">+ ${fmt(t.montoDestino, t.monedaDestino)}</span>
         </div>
-        ${deleteBtn}
+        ${actionBtns}
       </div>`;
   }
   const isIngreso = t.tipo === 'ingreso';
@@ -352,8 +396,8 @@ function txItem(t, showDelete) {
   const amtColor  = isIngreso ? 'var(--green)' : 'var(--red)';
   const amtSign   = isIngreso ? '+' : '−';
   const pillClass = METODO_PILL[t.metodo] || 'pill-ot';
-  const deleteBtn = showDelete
-    ? `<button class="tx-delete" data-id="${t.id}" aria-label="Eliminar">✕</button>`
+  const actionBtns = showDelete
+    ? `<button class="tx-edit" data-id="${t.id}" aria-label="Editar">✎</button><button class="tx-delete" data-id="${t.id}" aria-label="Eliminar">✕</button>`
     : '';
 
   return `
@@ -367,7 +411,7 @@ function txItem(t, showDelete) {
         <div class="tx-amount" style="color:${amtColor}">${amtSign} ${fmt(t.monto, t.moneda)}</div>
         <span class="tx-method ${pillClass}">${t.metodo}</span>
       </div>
-      ${deleteBtn}
+      ${actionBtns}
     </div>`;
 }
 
@@ -408,9 +452,36 @@ function showScreen(name) {
    ADD FORM
    ══════════════════════════════════════ */
 function initForm() {
+  refreshCategoryOptions();
   document.getElementById('f-fecha').valueAsDate = new Date();
   // Set mes select to match current homeMes
   document.getElementById('f-mes').value = MESES[homeMesIdx];
+  document.getElementById('btn-registrar').textContent = 'Registrar';
+  editingId = null;
+  updateTypeButtons();
+}
+
+function editTransaction(id) {
+  const transaction = txs.find(item => item.id === id);
+  if (!transaction) return;
+  selectedType = transaction.tipo;
+  showScreen('add');
+  editingId = id;
+  document.getElementById('f-concepto').value = transaction.concepto || '';
+  document.getElementById('f-fecha').value = transaction.fecha || '';
+  document.getElementById('f-mes').value = transaction.mes;
+  refreshCategoryOptions(transaction.categoria);
+  document.getElementById('f-metodo').value = transaction.metodo || 'Otros';
+  if (transaction.tipo === 'cambio') {
+    document.getElementById('f-cambio-origen').value = transaction.moneda;
+    document.getElementById('f-cambio-destino').value = transaction.monedaDestino;
+    document.getElementById('f-cambio-monto-origen').value = transaction.monto;
+    document.getElementById('f-cambio-monto-destino').value = transaction.montoDestino;
+  } else {
+    document.getElementById('f-monto').value = transaction.monto;
+    document.getElementById('f-moneda').value = transaction.moneda || 'ARS';
+  }
+  document.getElementById('btn-registrar').textContent = 'Guardar cambios';
   updateTypeButtons();
 }
 
@@ -446,11 +517,15 @@ function addTransaction() {
       return;
     }
     concepto = concepto || `Cambio ${monedaOrigen} a ${monedaDestino}`;
-    txs.push({ id: nextId++, mes, fecha, concepto, categoria: 'Otros', metodo: 'Efectivo', monto: montoOrigen, moneda: monedaOrigen, tipo: 'cambio', montoDestino, monedaDestino });
+    const updated = { id: editingId || nextId++, mes, fecha, concepto, categoria: 'Otros', metodo: 'Efectivo', monto: montoOrigen, moneda: monedaOrigen, tipo: 'cambio', montoDestino, monedaDestino };
+    if (editingId) txs = txs.map(transaction => transaction.id === editingId ? updated : transaction);
+    else txs.push(updated);
   } else {
     if (!concepto) { errEl.textContent = 'Ingresá un concepto.'; return; }
     if (!monto || monto <= 0) { errEl.textContent = 'Ingresá un monto válido.'; return; }
-    txs.push({ id: nextId++, mes, fecha, concepto, categoria, metodo, monto, moneda, tipo: selectedType });
+    const updated = { id: editingId || nextId++, mes, fecha, concepto, categoria, metodo, monto, moneda, tipo: selectedType };
+    if (editingId) txs = txs.map(transaction => transaction.id === editingId ? updated : transaction);
+    else txs.push(updated);
   }
   saveData();
 
@@ -458,6 +533,7 @@ function addTransaction() {
   document.getElementById('f-concepto').value = '';
   document.getElementById('f-monto').value = '';
   errEl.textContent = '';
+  editingId = null;
 
   // Go to home showing that month
   homeMesIdx = MESES.indexOf(mes);
@@ -503,6 +579,7 @@ function bindEvents() {
   // Register button
   document.getElementById('btn-registrar').addEventListener('click', addTransaction);
   document.getElementById('home-add-btn').addEventListener('click', () => showScreen('add'));
+  document.getElementById('btn-add-category').addEventListener('click', addCategory);
 
   // History filters
   ['h-mes','h-tipo','h-cat'].forEach(id => {
@@ -511,6 +588,8 @@ function bindEvents() {
 
   // Delete buttons (delegated)
   document.getElementById('hist-tx-list').addEventListener('click', e => {
+    const editBtn = e.target.closest('.tx-edit');
+    if (editBtn) editTransaction(Number(editBtn.dataset.id));
     const btn = e.target.closest('.tx-delete');
     if (btn) deleteTransaction(Number(btn.dataset.id));
   });
@@ -537,6 +616,7 @@ function registerSW() {
    ══════════════════════════════════════ */
 window._appGetTxs    = () => txs;
 window._appGetNextId = () => nextId;
+window._appGetCategories = getCategories;
 window._appSetTxs    = (newTxs, newNextId) => {
   txs    = newTxs;
   nextId = newNextId;

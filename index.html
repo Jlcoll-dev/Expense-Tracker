@@ -145,11 +145,10 @@
         <div class="field-row">
           <div class="field-group">
             <label class="field-lbl">Categoría</label>
-            <select id="f-categoria" class="field-input">
-              <option>Hogar</option><option>Comida</option><option>Transporte</option>
-              <option>Entretenimiento</option><option>Salud</option><option>Moto</option>
-              <option>Salidas</option><option>Otros</option>
-            </select>
+            <div class="field-with-action">
+              <select id="f-categoria" class="field-input"></select>
+              <button type="button" class="field-action-btn" id="btn-add-category" aria-label="Agregar categoría">+</button>
+            </div>
           </div>
           <div class="field-group">
             <label class="field-lbl">Método de pago</label>

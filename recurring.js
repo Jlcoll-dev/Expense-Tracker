@@ -102,6 +102,7 @@ function renderRecurringScreen() {
   const screen = document.getElementById('screen-recurring');
   if (!screen) return;
   const fijos = loadFijos();
+  const categories = window._appGetCategories ? window._appGetCategories() : CAT_OPTIONS;
   let nextRId = Math.max(...fijos.map(f => parseInt(f.id.replace('r',''))), 0) + 1;
 
   screen.innerHTML = `
@@ -167,7 +168,7 @@ function renderRecurringScreen() {
           <div class="field-group">
             <label class="field-lbl">Categoría</label>
             <select id="rec-f-cat" class="field-input">
-              ${CAT_OPTIONS.map(c => `<option>${c}</option>`).join('')}
+              ${categories.map(c => `<option>${c}</option>`).join('')}
             </select>
           </div>
           <div class="field-group">
